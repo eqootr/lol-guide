@@ -242,6 +242,9 @@ const META_PLAYERS = [
   { region: "europe", platform: "euw1", name: "Thebausffs", tag: "EUW" },
   { region: "europe", platform: "euw1", name: "xPetu", tag: "EUW" },
   { region: "europe", platform: "euw1", name: "broeki", tag: "EUW" },
+  { region: "europe", platform: "euw1", name: "Bwipo", tag: "EUW" },
+  { region: "europe", platform: "euw1", name: "Rekkles", tag: "EUW" },
+  { region: "europe", platform: "euw1", name: "Humanoid", tag: "EUW" },
   { region: "americas", platform: "na1", name: "Doublelift", tag: "NA1" },
   { region: "americas", platform: "na1", name: "CoreJJ", tag: "NA1" },
   { region: "americas", platform: "na1", name: "Blaber", tag: "NA1" },
@@ -249,8 +252,8 @@ const META_PLAYERS = [
   { region: "asia", platform: "kr", name: "Chovy", tag: "KR1" },
   { region: "asia", platform: "kr", name: "ShowMaker", tag: "KR1" },
 ];
-const META_GAMES_PER_PLAYER = 10;
-const META_REFRESH_MS = 8 * 60 * 60 * 1000;
+const META_GAMES_PER_PLAYER = 30;
+const META_REFRESH_MS = 12 * 60 * 60 * 1000;
 const META_QUEUES = [400, 420, 430, 440];
 const META_LANES = ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"];
 
