@@ -19,13 +19,24 @@
     </nav>
     <span class="site-badge">META</span>
     <h1>League <span>Of Noobs</span></h1>
-    <p>Community tier list built from every player searched on this site. Champions with more games have more reliable ratings.</p>
+    <p>Worldwide meta tier list by lane, sampled from high-ELO players across EUW, NA and KR. Refreshes automatically throughout the day.</p>
 
     <div class="meta-controls">
       <span class="meta-controls-label">Sort by</span>
       <button class="btn btn-sort active" data-sort="games">Most played</button>
       <button class="btn btn-sort" data-sort="winrate">Best win rate</button>
     </div>
+
+    <div class="lane-tabs">
+      <button class="lane-tab active" data-lane="ALL">All</button>
+      <button class="lane-tab" data-lane="TOP">Top</button>
+      <button class="lane-tab" data-lane="JUNGLE">Jungle</button>
+      <button class="lane-tab" data-lane="MIDDLE">Mid</button>
+      <button class="lane-tab" data-lane="BOTTOM">Bot</button>
+      <button class="lane-tab" data-lane="UTILITY">Support</button>
+    </div>
+
+    <div id="metaInfo" class="meta-info"></div>
   </header>
 
   <main>

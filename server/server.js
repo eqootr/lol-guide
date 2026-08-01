@@ -235,24 +235,143 @@ async function buildLive(puuid, names) {
   };
 }
 
-async function recordMeta(topChampions) {
-  if (!fbConfigured || !Array.isArray(topChampions) || !topChampions.length) return;
+const META_PLAYERS = [
+  { region: "europe", platform: "euw1", name: "Caps", tag: "EUW" },
+  { region: "europe", platform: "euw1", name: "Yike", tag: "EUW" },
+  { region: "europe", platform: "euw1", name: "Jankos", tag: "EUW" },
+  { region: "europe", platform: "euw1", name: "Thebausffs", tag: "EUW" },
+  { region: "europe", platform: "euw1", name: "xPetu", tag: "EUW" },
+  { region: "europe", platform: "euw1", name: "broeki", tag: "EUW" },
+  { region: "americas", platform: "na1", name: "Doublelift", tag: "NA1" },
+  { region: "americas", platform: "na1", name: "CoreJJ", tag: "NA1" },
+  { region: "americas", platform: "na1", name: "Blaber", tag: "NA1" },
+  { region: "asia", platform: "kr", name: "Hide on bush", tag: "KR1" },
+  { region: "asia", platform: "kr", name: "Chovy", tag: "KR1" },
+  { region: "asia", platform: "kr", name: "ShowMaker", tag: "KR1" },
+];
+const META_GAMES_PER_PLAYER = 10;
+const META_REFRESH_MS = 8 * 60 * 60 * 1000;
+const META_QUEUES = [400, 420, 430, 440];
+const META_LANES = ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"];
+
+let samplingMeta = false;
+
+function metaLaneOf(p) {
+  let k = p.teamPosition;
+  if (!k && p.role === "DUO_SUPPORT") k = "UTILITY";
+  if (!k && p.lane) k = p.lane;
+  k = String(k || "").toUpperCase();
+  return META_LANES.includes(k) ? k : null;
+}
+
+async function sampleWorldwideMeta() {
+  if (!fbConfigured || samplingMeta) return;
+  samplingMeta = true;
   try {
-    const batch = admin.firestore().batch();
-    for (const c of topChampions.slice(0, 10)) {
-      const ref = admin.firestore().collection("meta").doc(c.championName);
-      batch.set(
-        ref,
-        {
-          games: admin.firestore.FieldValue.increment(c.games),
-          wins: admin.firestore.FieldValue.increment(c.wins),
-        },
-        { merge: true }
-      );
+    const db = admin.firestore();
+    const prevDoc = await db.collection("meta").doc("_meta").get();
+    const prev = prevDoc.exists ? prevDoc.data() : {};
+    if (
+      prev.generatedAt &&
+      Date.now() - new Date(prev.generatedAt).getTime() < META_REFRESH_MS
+    ) {
+      return;
     }
+
+    const names = await getChampionNames();
+    const agg = new Map();
+    const resolved = [];
+    const failed = [];
+    const regions = new Set();
+
+    await mapLimit(META_PLAYERS, 3, async (pl) => {
+      const label = `${pl.name}#${pl.tag}`;
+      try {
+        const acct = await riotFetch(
+          `https://${pl.region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(pl.name)}/${encodeURIComponent(pl.tag)}`
+        );
+        if (!acct.data) {
+          failed.push(label);
+          return;
+        }
+        const idsRes = await riotFetch(
+          `https://${pl.region}.api.riotgames.com/lol/match/v5/matches/by-puuid/${acct.data.puuid}/ids?start=0&count=${META_GAMES_PER_PLAYER}`
+        );
+        const matchIds = Array.isArray(idsRes.data) ? idsRes.data : [];
+        const details = await mapLimit(matchIds, 2, async (mid) => {
+          const r = await riotFetch(`https://${pl.region}.api.riotgames.com/lol/match/v5/matches/${mid}`);
+          return r.data;
+        });
+        let counted = 0;
+        for (const m of details) {
+          if (!m || !m.info) continue;
+          if (m.info.gameDuration < 300) continue;
+          if (!META_QUEUES.includes(m.info.queueId)) continue;
+          for (const p of m.info.participants || []) {
+            if (!p || !p.championName) continue;
+            const lane = metaLaneOf(p);
+            if (!lane) continue;
+            let st = agg.get(p.championName);
+            if (!st) {
+              st = { championName: p.championName, games: 0, wins: 0, byLane: {} };
+              agg.set(p.championName, st);
+            }
+            st.games++;
+            st.wins += p.win ? 1 : 0;
+            let bl = st.byLane[lane];
+            if (!bl) {
+              bl = { games: 0, wins: 0 };
+              st.byLane[lane] = bl;
+            }
+            bl.games++;
+            bl.wins += p.win ? 1 : 0;
+            counted++;
+          }
+        }
+        if (counted) {
+          resolved.push(label);
+          regions.add(pl.platform);
+        } else {
+          failed.push(label);
+        }
+      } catch {
+        failed.push(label);
+      }
+    });
+
+    const champions = [...agg.values()].map((c) => ({
+      championName: c.championName,
+      games: c.games,
+      wins: c.wins,
+      winRate: c.games ? round1((c.wins / c.games) * 100) : 0,
+      byLane: c.byLane,
+    }));
+
+    const batch = db.batch();
+    for (const c of champions) {
+      batch.set(db.collection("meta").doc(c.championName), {
+        games: c.games,
+        wins: c.wins,
+        byLane: c.byLane,
+      });
+    }
+    const info = {
+      generatedAt: new Date().toISOString(),
+      championGames: champions.reduce((s, c) => s + c.games, 0),
+      players: resolved.length,
+      regions: [...regions].sort(),
+      resolved,
+      failed,
+    };
+    batch.set(db.collection("meta").doc("_meta"), info);
     await batch.commit();
+    console.log(
+      `Meta sampled: ${info.championGames} champion-games, ${info.players} players (${info.regions.join(", ")})`
+    );
   } catch (err) {
-    console.warn("Meta aggregation skipped:", err.message);
+    console.warn("Worldwide meta sampling failed:", err.message);
+  } finally {
+    samplingMeta = false;
   }
 }
 
@@ -347,8 +466,6 @@ async function buildPlayerStats(name, tag) {
   const ranked = await buildRanked(puuid);
   const mastery = await buildMastery(puuid, championNames);
 
-  await recordMeta(topChampions);
-
   return {
     ddragonVersion: await getDdragonVersion(),
     account: {
@@ -427,29 +544,44 @@ app.get("/api/player", async (req, res) => {
 app.get("/api/meta", async (_req, res) => {
   if (!fbConfigured) {
     return res.status(503).json({
-      error: "The Meta tier list needs Firebase/Firestore configured. It aggregates champions from every player searched on the site.",
+      error: "The Meta tier list needs Firebase/Firestore configured. It aggregates a worldwide high-ELO champion snapshot by lane.",
     });
   }
   try {
     const data = await cached("meta:list", 60 * 1000, async () => {
-      const snap = await admin
-        .firestore()
-        .collection("meta")
-        .orderBy("games", "desc")
-        .limit(50)
-        .get();
+      const snap = await admin.firestore().collection("meta").get();
       const champions = [];
+      let info = { generatedAt: null, championGames: 0, players: 0, regions: [] };
       snap.forEach((doc) => {
         const d = doc.data();
-        if (!d.games) return;
+        if (doc.id === "_meta") {
+          info = {
+            generatedAt: d.generatedAt || null,
+            championGames: d.championGames || 0,
+            players: d.players || 0,
+            regions: d.regions || [],
+          };
+          return;
+        }
+        if (!d.byLane) return;
+        const byLane = {};
+        for (const [lane, v] of Object.entries(d.byLane || {})) {
+          byLane[lane] = {
+            games: v.games || 0,
+            wins: v.wins || 0,
+            winRate: v.games ? Math.round((v.wins / v.games) * 1000) / 10 : 0,
+          };
+        }
         champions.push({
           championName: doc.id,
-          games: d.games,
+          games: d.games || 0,
           wins: d.wins || 0,
-          winRate: Math.round((d.wins / d.games) * 1000) / 10,
+          winRate: d.games ? Math.round((d.wins / d.games) * 1000) / 10 : 0,
+          byLane,
         });
       });
-      return { champions };
+      champions.sort((a, b) => b.games - a.games);
+      return { ...info, champions };
     });
     res.json(data);
   } catch (err) {
@@ -652,4 +784,7 @@ app.listen(PORT, () => {
   console.log(
     `Riot API key: ${RIOT_API_KEY ? "configured" : "NOT configured (player stats disabled; add server/.env)"}`
   );
+
+  sampleWorldwideMeta();
+  setInterval(sampleWorldwideMeta, META_REFRESH_MS);
 });
