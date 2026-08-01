@@ -418,6 +418,19 @@ app.get("/api/player", async (req, res) => {
   }
 });
 
+app.get("/api/debug/summoner", async (req, res) => {
+  if (!RIOT_API_KEY) return res.json({ error: "no key" });
+  const name = String(req.query.name || "").trim();
+  const tag = String(req.query.tag || "").trim();
+  const acctRes = await riotFetch(
+    `https://${RIOT_REGION}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`
+  );
+  if (!acctRes.data) return res.json({ status: acctRes.status, data: null });
+  const puuid = acctRes.data.puuid;
+  const s = await riotFetch(`https://${RIOT_PLATFORM}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`);
+  return res.json({ status: s.status, summoner: s.data, keys: s.data ? Object.keys(s.data) : [] });
+});
+
 app.get("/api/meta", async (_req, res) => {
   if (!fbConfigured) {
     return res.status(503).json({
