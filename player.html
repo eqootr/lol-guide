@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Player Stats - League Of Noobs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-link">Champions</a>
+      <a href="player.html" class="nav-link active">Player Stats</a>
+    </nav>
+    <span class="site-badge">PLAYER STATS</span>
+    <h1>League <span>Of Noobs</span></h1>
+    <p>Search any player by Riot ID (Name#TAG) to see their level, most-played champions and last 30 matches.</p>
+
+    <div class="search-wrap search-wrap-lg">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      <input type="text" id="playerSearch" placeholder="e.g. Thebausffs#EUW" autocomplete="off">
+      <button id="playerGo" class="btn btn-go">Search</button>
+    </div>
+    <p class="search-hint">No #? The NA tag is <b>#NA1</b>, Europe is <b>#EUW</b> or <b>#EUNE</b>, Korea is <b>#KR1</b>.</p>
+  </header>
+
+  <main>
+    <div id="playerLoading" class="loading hidden">
+      <div class="spinner"></div>
+      <p>Fetching the last 30 matches...</p>
+    </div>
+
+    <div id="playerError" class="player-error hidden"></div>
+
+    <div id="playerResults" class="player-results hidden">
+      <div class="player-hero">
+        <div class="player-icon"><img id="playerIcon" alt=""></div>
+        <div class="player-hero-meta">
+          <h2 id="playerName"></h2>
+          <div class="player-level">Level <b id="playerLevel">-</b></div>
+        </div>
+      </div>
+
+      <div class="player-stats" id="playerStats">
+        <div class="stat-card"><span class="stat-label">Last 30</span><b id="statMatches">-</b></div>
+        <div class="stat-card"><span class="stat-label">Wins</span><b class="win" id="statWins">-</b></div>
+        <div class="stat-card"><span class="stat-label">Losses</span><b class="loss" id="statLosses">-</b></div>
+        <div class="stat-card"><span class="stat-label">Win Rate</span><b id="statWinRate">-</b></div>
+        <div class="stat-card"><span class="stat-label">KDA</span><b id="statKda">-</b></div>
+        <div class="stat-card"><span class="stat-label">Kills</span><b id="statKills">-</b></div>
+        <div class="stat-card"><span class="stat-label">Deaths</span><b id="statDeaths">-</b></div>
+        <div class="stat-card"><span class="stat-label">Assists</span><b id="statAssists">-</b></div>
+      </div>
+
+      <h3 class="section-title">Most Played Champions <span class="meta">last 30 matches</span></h3>
+      <div id="topChamps" class="top-champs"></div>
+
+      <h3 class="section-title">Recent Matches</h3>
+      <div id="recentMatches" class="recent-matches"></div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Fan-made beginner guide. League of Legends and all champion names are trademarks of Riot Games, Inc. This page is not endorsed by Riot Games.</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="player.js"></script>
+</body>
+</html>

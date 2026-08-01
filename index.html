@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>League Of Noobs - Champions, Builds, Runes &amp; Counters</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-link active">Champions</a>
+      <a href="player.html" class="nav-link">Player Stats</a>
+    </nav>
+    <span class="site-badge">FAN GUIDE</span>
+    <h1>League <span>Of Noobs</span></h1>
+    <p>Pick a champion to see their role, abilities, best builds, runes and counters.</p>
+    <div class="filters">
+      <button class="filter active" data-role="all">All</button>
+      <button class="filter" data-role="Fighter">Fighter</button>
+      <button class="filter" data-role="Tank">Tank</button>
+      <button class="filter" data-role="Mage">Mage</button>
+      <button class="filter" data-role="Marksman">Marksman</button>
+      <button class="filter" data-role="Assassin">Assassin</button>
+      <button class="filter" data-role="Support">Support</button>
+    </div>
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      <input type="text" id="search" placeholder="Search champions..." class="search">
+    </div>
+    <div id="authArea" class="auth-area">
+      <button id="signInBtn" class="btn btn-signin">Sign in</button>
+      <div id="userMenu" class="user-menu hidden">
+        <div class="user-menu-head">
+          <span id="userAvatar" class="user-avatar"></span>
+          <div class="user-meta">
+            <span id="userName" class="user-name"></span>
+            <button id="signOutBtn" class="link-btn">Sign out</button>
+          </div>
+        </div>
+        <div id="riotLink" class="riot-link"></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="grid" class="grid"></section>
+
+    <section id="detail" class="detail hidden">
+      <button id="backBtn" class="back-btn">&larr; Back to champions</button>
+      <article id="detailCard"></article>
+    </section>
+  </main>
+
+  <footer>
+    <p>Fan-made beginner guide. League of Legends and all champion names are trademarks of Riot Games, Inc.</p>
+  </footer>
+
+  <div id="authModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box">
+      <button id="authClose" class="modal-close">&times;</button>
+      <h2 id="authTitle">Sign in</h2>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-mode="login">Sign In</button>
+        <button class="auth-tab" data-mode="signup">Sign Up</button>
+      </div>
+      <form id="emailForm">
+        <input type="email" id="authEmail" placeholder="Email" autocomplete="email" required>
+        <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password" required>
+        <button type="submit" class="btn btn-primary" id="emailSubmit">Sign In</button>
+      </form>
+      <div class="auth-divider"><span>or</span></div>
+      <button class="btn btn-google" id="googleBtn"><span class="g-logo">G</span> Continue with Google</button>
+      <button class="btn btn-riot" id="riotBtn"><span class="riot-logo">LoL</span> Sign in with League of Legends</button>
+      <p class="auth-error" id="authError"></p>
+      <p class="auth-note" id="authNote"></p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>
