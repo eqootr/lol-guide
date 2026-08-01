@@ -1850,6 +1850,418 @@ footer {
   color: var(--gold-2);
 }
 
+/* ---------- Live status / ranked / mastery ---------- */
+
+.live-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.live-chip .live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+}
+
+.live-chip.on {
+  color: var(--win);
+}
+
+.live-chip.on .live-dot {
+  background: var(--win);
+  box-shadow: 0 0 8px var(--win);
+  animation: livePulse 1.6s ease-in-out infinite;
+}
+
+.live-chip.off {
+  color: var(--muted);
+}
+
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.btn-spectate {
+  margin-left: 0.35rem;
+  padding: 0.28rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--bg-deep);
+  background: linear-gradient(90deg, var(--win), #66e6a1);
+  text-decoration: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn-spectate:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.rank-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.8rem;
+}
+
+.rank-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(26, 43, 71, 0.55), var(--panel-dark));
+  border: 1px solid rgba(42, 61, 92, 0.5);
+  border-left: 4px solid var(--muted);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+}
+
+.rank-card .rank-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+
+.hot-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 7px var(--gold);
+}
+
+.rank-card .rank-tier {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.rank-card .rank-lp {
+  display: block;
+  color: var(--gold-2);
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+
+.rank-card .rank-wr {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+  margin-top: 0.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-card .rank-none {
+  display: block;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.rank-card.tier-iron {
+  border-left-color: #8a8a8a;
+}
+.rank-card.tier-bronze {
+  border-left-color: #cd7f32;
+}
+.rank-card.tier-silver {
+  border-left-color: #a0b2c4;
+}
+.rank-card.tier-gold {
+  border-left-color: #c8aa6e;
+}
+.rank-card.tier-platinum {
+  border-left-color: #34e2c8;
+}
+.rank-card.tier-diamond {
+  border-left-color: #6fa8ff;
+}
+.rank-card.tier-master {
+  border-left-color: #b76ce8;
+}
+.rank-card.tier-grandmaster {
+  border-left-color: #e04a5f;
+}
+.rank-card.tier-challenger {
+  border-left-color: #f0c94c;
+}
+
+.mastery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.8rem;
+}
+
+.mastery-item {
+  position: relative;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(26, 43, 71, 0.55), var(--panel-dark));
+  border: 1px solid rgba(42, 61, 92, 0.5);
+  border-radius: 12px;
+  padding: 0.8rem 0.5rem 0.7rem;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.mastery-item:hover {
+  border-color: rgba(200, 170, 110, 0.5);
+  transform: translateY(-3px);
+}
+
+.mastery-avatar {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto 0.5rem;
+}
+
+.mastery-avatar img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: #0d1b30;
+  display: block;
+}
+
+.mastery-level {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-2));
+  color: var(--bg-deep);
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.mastery-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.mastery-pts {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Meta tier list ---------- */
+
+.meta-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 1.4rem;
+}
+
+.meta-controls-label {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+}
+
+.btn-sort {
+  background: linear-gradient(180deg, rgba(26, 43, 71, 0.55), var(--panel-dark));
+  border: 1px solid rgba(42, 61, 92, 0.6);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-sort:hover {
+  border-color: rgba(200, 170, 110, 0.5);
+}
+
+.btn-sort.active {
+  color: var(--bg-deep);
+  border-color: transparent;
+  background: linear-gradient(90deg, var(--gold), var(--gold-2));
+}
+
+.meta-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+}
+
+.meta-table thead th {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  text-align: left;
+  padding: 0 0.9rem;
+}
+
+.meta-table tbody tr {
+  background: linear-gradient(90deg, rgba(26, 43, 71, 0.5), var(--panel-dark));
+  border: 1px solid rgba(42, 61, 92, 0.5);
+  transition: transform 0.15s ease;
+}
+
+.meta-table tbody tr:hover {
+  transform: translateX(3px);
+}
+
+.meta-table tbody td {
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+  border-top: 1px solid rgba(42, 61, 92, 0.5);
+  border-bottom: 1px solid rgba(42, 61, 92, 0.5);
+}
+
+.meta-table tbody td:first-child {
+  border-left: 1px solid rgba(42, 61, 92, 0.5);
+  border-radius: 10px 0 0 10px;
+}
+
+.meta-table tbody td:last-child {
+  border-right: 1px solid rgba(42, 61, 92, 0.5);
+  border-radius: 0 10px 10px 0;
+}
+
+.meta-rank {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.meta-champ-img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  background: #0d1b30;
+  display: block;
+}
+
+.meta-champ-name {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.meta-games {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.meta-wr {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 150px;
+}
+
+.meta-wr > span {
+  font-weight: 700;
+  color: var(--win);
+  font-variant-numeric: tabular-nums;
+  min-width: 46px;
+  text-align: right;
+}
+
+.wr-track {
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(42, 61, 92, 0.6);
+  overflow: hidden;
+}
+
+.wr-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--win), var(--accent));
+}
+
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--bg-deep);
+}
+
+.tier-badge.splus {
+  background: linear-gradient(90deg, #ffd76e, #f0a832);
+}
+.tier-badge.s {
+  background: linear-gradient(90deg, #f5b56e, #d98a3a);
+}
+.tier-badge.a {
+  background: linear-gradient(90deg, #6ee6a1, #3dc77f);
+}
+.tier-badge.b {
+  background: linear-gradient(90deg, #58b7e3, #3a95d0);
+}
+.tier-badge.c {
+  background: linear-gradient(90deg, #8f9cb0, #6f7d94);
+}
+
+.meta-footnote {
+  margin-top: 1rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: center;
+}
+
 /* ---------- Responsive / motion ---------- */
 
 @media (max-width: 640px) {

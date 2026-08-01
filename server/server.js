@@ -161,6 +161,93 @@ function round1(n) {
   return Math.round(n * 10) / 10;
 }
 
+async function getChampionNames() {
+  return cached("ddragon:champs", 24 * 60 * 60 * 1000, async () => {
+    const v = await getDdragonVersion();
+    const res = await fetch(`https://ddragon.leagueoflegends.com/cdn/${v}/data/en_US/champion.json`);
+    if (!res.ok) return new Map();
+    const data = await res.json();
+    const map = new Map();
+    for (const c of Object.values(data.data)) map.set(c.key, c.id);
+    return map;
+  });
+}
+
+async function buildRanked(summonerId) {
+  const out = { solo: null, flex: null };
+  if (!summonerId) return out;
+  const res = await riotFetch(
+    `https://${RIOT_PLATFORM}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`
+  );
+  const entries = Array.isArray(res.data) ? res.data : [];
+  for (const e of entries) {
+    const total = e.wins + e.losses;
+    const obj = {
+      tier: e.tier,
+      rank: e.rank,
+      lp: e.leaguePoints,
+      wins: e.wins,
+      losses: e.losses,
+      winRate: total ? round1((e.wins / total) * 100) : 0,
+      hotStreak: !!e.hotStreak,
+    };
+    if (e.queueType === "RANKED_SOLO_5x5") out.solo = obj;
+    else if (e.queueType === "RANKED_FLEX_SR") out.flex = obj;
+  }
+  return out;
+}
+
+async function buildMastery(puuid, names) {
+  const res = await riotFetch(
+    `https://${RIOT_PLATFORM}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${puuid}`
+  );
+  const list = Array.isArray(res.data) ? res.data : [];
+  return list.slice(0, 5).map((m) => ({
+    championName: names.get(String(m.championId)) || `Champion ${m.championId}`,
+    championLevel: m.championLevel,
+    championPoints: m.championPoints,
+  }));
+}
+
+async function buildLive(summonerId, names) {
+  if (!summonerId) return { inGame: false };
+  const res = await riotFetch(
+    `https://${RIOT_PLATFORM}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${summonerId}`
+  );
+  const g = res.data;
+  if (!g) return { inGame: false };
+  return {
+    inGame: true,
+    queueId: g.gameQueueConfigId,
+    gameLength: g.gameLength,
+    participants: (g.participants || []).map((p) => ({
+      summonerName: p.summonerName,
+      championName: names.get(String(p.championId)) || `Champion ${p.championId}`,
+    })),
+  };
+}
+
+async function recordMeta(topChampions) {
+  if (!fbConfigured || !Array.isArray(topChampions) || !topChampions.length) return;
+  try {
+    const batch = admin.firestore().batch();
+    for (const c of topChampions.slice(0, 10)) {
+      const ref = admin.firestore().collection("meta").doc(c.championName);
+      batch.set(
+        ref,
+        {
+          games: admin.firestore.FieldValue.increment(c.games),
+          wins: admin.firestore.FieldValue.increment(c.wins),
+        },
+        { merge: true }
+      );
+    }
+    await batch.commit();
+  } catch (err) {
+    console.warn("Meta aggregation skipped:", err.message);
+  }
+}
+
 async function buildPlayerStats(name, tag) {
   const region = RIOT_REGION;
   const acctRes = await riotFetch(
@@ -247,12 +334,22 @@ async function buildPlayerStats(name, tag) {
     }));
 
   const played = recent.length;
+
+  const summonerId = summoner?.id || "";
+  const championNames = await getChampionNames();
+  const ranked = await buildRanked(summonerId);
+  const mastery = await buildMastery(puuid, championNames);
+
+  await recordMeta(topChampions);
+
   return {
     ddragonVersion: await getDdragonVersion(),
     account: {
       gameName: acct.gameName,
       tagLine: acct.tagLine,
       puuid,
+      summonerId,
+      platform: RIOT_PLATFORM,
       summonerLevel: summoner?.summonerLevel ?? null,
       profileIconId: summoner?.profileIconId ?? null,
     },
@@ -266,6 +363,8 @@ async function buildPlayerStats(name, tag) {
       deaths,
       assists,
     },
+    ranked,
+    mastery,
     topChampions,
     recent: recent.sort((a, b) => b.timestamp - a.timestamp),
   };
@@ -310,11 +409,46 @@ app.get("/api/player", async (req, res) => {
 
   try {
     const data = await cached(`player:${name}#${tag}`, 5 * 60 * 1000, () => buildPlayerStats(name, tag));
+    data.live = await buildLive(data.account.summonerId, await getChampionNames());
     res.json(data);
   } catch (err) {
     const kind = err.kind || "generic";
     const status = kind === "not_found" ? 404 : 503;
     res.status(status).json({ error: err.message || "Could not load player stats.", kind });
+  }
+});
+
+app.get("/api/meta", async (_req, res) => {
+  if (!fbConfigured) {
+    return res.status(503).json({
+      error: "The Meta tier list needs Firebase/Firestore configured. It aggregates champions from every player searched on the site.",
+    });
+  }
+  try {
+    const data = await cached("meta:list", 60 * 1000, async () => {
+      const snap = await admin
+        .firestore()
+        .collection("meta")
+        .orderBy("games", "desc")
+        .limit(50)
+        .get();
+      const champions = [];
+      snap.forEach((doc) => {
+        const d = doc.data();
+        if (!d.games) return;
+        champions.push({
+          championName: doc.id,
+          games: d.games,
+          wins: d.wins || 0,
+          winRate: Math.round((d.wins / d.games) * 1000) / 10,
+        });
+      });
+      return { champions };
+    });
+    res.json(data);
+  } catch (err) {
+    console.error("Meta endpoint failed:", err);
+    res.status(500).json({ error: "Could not load the meta tier list." });
   }
 });
 
@@ -483,6 +617,8 @@ const STATIC_OK = new Set([
   "/bg.js",
   "/profile.html",
   "/firebase-config.js",
+  "/meta.html",
+  "/meta.js",
 ]);
 
 app.use((req, res, next) => {

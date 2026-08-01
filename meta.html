@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Player Stats - League Of Noobs</title>
+  <title>Meta Tier List - League Of Noobs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
@@ -13,34 +13,33 @@
   <header>
     <nav class="top-nav">
       <a href="index.html" class="nav-link">Champions</a>
-      <a href="player.html" class="nav-link active">Player Stats</a>
+      <a href="player.html" class="nav-link">Player Stats</a>
       <a href="profile.html" class="nav-link">My Profile</a>
-      <a href="meta.html" class="nav-link">Meta</a>
+      <a href="meta.html" class="nav-link active">Meta</a>
     </nav>
-    <span class="site-badge">PLAYER STATS</span>
+    <span class="site-badge">META</span>
     <h1>League <span>Of Noobs</span></h1>
-    <p>Search any player by Riot ID (Name#TAG) to see their level, most-played champions and last 30 matches.</p>
+    <p>Community tier list built from every player searched on this site. Champions with more games have more reliable ratings.</p>
 
-    <div class="search-wrap search-wrap-lg">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-      <input type="text" id="playerSearch" placeholder="e.g. Thebausffs#EUW" autocomplete="off">
-      <button id="playerGo" class="btn btn-go">Search</button>
+    <div class="meta-controls">
+      <span class="meta-controls-label">Sort by</span>
+      <button class="btn btn-sort active" data-sort="games">Most played</button>
+      <button class="btn btn-sort" data-sort="winrate">Best win rate</button>
     </div>
-    <p class="search-hint">No #? The NA tag is <b>#NA1</b>, Europe is <b>#EUW</b> or <b>#EUNE</b>, Korea is <b>#KR1</b>.</p>
   </header>
 
   <main>
-    <div id="playerLoading" class="loading hidden">
+    <div id="metaLoading" class="loading hidden">
       <div class="spinner"></div>
-      <p>Fetching the last 30 matches...</p>
+      <p>Crunching the numbers...</p>
     </div>
 
-    <div id="playerError" class="player-error hidden">
+    <div id="metaError" class="player-error hidden">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
-      <span id="playerErrorText"></span>
+      <span id="metaErrorText"></span>
     </div>
 
-    <div id="playerResults" class="player-results hidden"></div>
+    <div id="metaResults" class="meta-results hidden"></div>
   </main>
 
   <footer>
@@ -48,8 +47,7 @@
   </footer>
 
   <script src="data.js"></script>
-  <script src="stats-view.js"></script>
   <script src="bg.js"></script>
-  <script src="player.js"></script>
+  <script src="meta.js"></script>
 </body>
 </html>
