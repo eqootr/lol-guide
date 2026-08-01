@@ -191,8 +191,12 @@ async function buildRanked(puuid) {
       winRate: total ? round1((e.wins / total) * 100) : 0,
       hotStreak: !!e.hotStreak,
     };
-    if (e.queueType === "RANKED_SOLO_5x5") out.solo = obj;
-    else if (e.queueType === "RANKED_FLEX_SR") out.flex = obj;
+    const out = { solo: null, flex: null };
+    if (e.queueType === "RANKED_SOLO_5x5" || e.queueType === "JADE_RANKED_SOLO_5x5") {
+      if (!out.solo || e.queueType === "RANKED_SOLO_5x5") out.solo = obj;
+    } else if (e.queueType === "RANKED_FLEX_SR" || e.queueType === "RANKED_PREMADE_5x5") {
+      if (!out.flex || e.queueType === "RANKED_FLEX_SR") out.flex = obj;
+    }
   }
   return out;
 }
@@ -419,24 +423,6 @@ app.get("/api/player", async (req, res) => {
     const status = kind === "not_found" ? 404 : 503;
     res.status(status).json({ error: err.message || "Could not load player stats.", kind });
   }
-});
-
-app.get("/api/debug/league", async (req, res) => {
-  const name = String(req.query.name || "").trim();
-  const tag = String(req.query.tag || "").trim();
-  const acct = await riotFetch(
-    `https://${RIOT_REGION}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`
-  );
-  if (!acct.data) return res.json({ status: acct.status, data: null });
-  const league = await riotFetch(
-    `https://${RIOT_PLATFORM}.api.riotgames.com/lol/league/v4/entries/by-puuid/${acct.data.puuid}`
-  );
-  return res.json({
-    status: league.status,
-    isArray: Array.isArray(league.data),
-    count: Array.isArray(league.data) ? league.data.length : "n/a",
-    league: league.data,
-  });
 });
 
 app.get("/api/meta", async (_req, res) => {
