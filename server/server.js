@@ -111,11 +111,28 @@ async function cached(key, ttlMs, fn) {
   return value;
 }
 
-async function riotFetch(url) {
-  const res = await fetch(url, { headers: { "X-Riot-Token": RIOT_API_KEY } });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Riot API error ${res.status}`);
-  return res.json();
+function apiError(status) {
+  if (status === 403) {
+    return { error: "Player stats are temporarily unavailable (Riot API key expired). Try again later.", kind: "api_key" };
+  }
+  if (status === 429) {
+    return { error: "Too many requests to Riot. Wait a minute and try again.", kind: "rate_limit" };
+  }
+  return { error: "Could not reach the Riot API. Try again in a moment.", kind: "generic" };
+}
+
+async function riotFetch(url, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    const res = await fetch(url, { headers: { "X-Riot-Token": RIOT_API_KEY } });
+    if (res.status === 404) return { status: 404, data: null };
+    if (res.status === 429 && i < retries - 1) {
+      await new Promise((r) => setTimeout(r, 1200 * (i + 1)));
+      continue;
+    }
+    if (!res.ok) return { status: res.status, data: null };
+    return { status: 200, data: await res.json() };
+  }
+  return { status: 429, data: null };
 }
 
 async function getDdragonVersion() {
@@ -146,27 +163,35 @@ function round1(n) {
 
 async function buildPlayerStats(name, tag) {
   const region = RIOT_REGION;
-  const acct = await riotFetch(
+  const acctRes = await riotFetch(
     `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`
   );
-  if (!acct) throw new Error("Summoner not found. Check the name and tag and try again.");
+  if (!acctRes.data) {
+    if (acctRes.status === 404) {
+      throw Object.assign(new Error("Summoner not found. Check the name and tag and try again."), { kind: "not_found" });
+    }
+    throw Object.assign(new Error(apiError(acctRes.status).error), { kind: apiError(acctRes.status).kind });
+  }
+  const acct = acctRes.data;
 
   const puuid = acct.puuid;
 
-  const summoner = await riotFetch(
+  const summonerRes = await riotFetch(
     `https://${RIOT_PLATFORM}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`
   );
-  const ids = await riotFetch(
+  const summoner = summonerRes.data;
+
+  const idsRes = await riotFetch(
     `https://${region}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=30`
   );
-  const matchIds = Array.isArray(ids) ? ids : [];
+  if (!idsRes.data && idsRes.status === 403) {
+    throw Object.assign(new Error(apiError(403).error), { kind: "api_key" });
+  }
+  const matchIds = Array.isArray(idsRes.data) ? idsRes.data : [];
 
   const details = await mapLimit(matchIds, 6, async (mid) => {
-    try {
-      return await riotFetch(`https://${region}.api.riotgames.com/lol/match/v5/matches/${mid}`);
-    } catch {
-      return null;
-    }
+    const r = await riotFetch(`https://${region}.api.riotgames.com/lol/match/v5/matches/${mid}`);
+    return r.data;
   });
 
   const recent = [];
@@ -287,7 +312,9 @@ app.get("/api/player", async (req, res) => {
     const data = await cached(`player:${name}#${tag}`, 5 * 60 * 1000, () => buildPlayerStats(name, tag));
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message || "Could not load player stats." });
+    const kind = err.kind || "generic";
+    const status = kind === "not_found" ? 404 : 503;
+    res.status(status).json({ error: err.message || "Could not load player stats.", kind });
   }
 });
 

@@ -1617,6 +1617,9 @@ footer {
 }
 
 .player-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
   background: rgba(224, 107, 107, 0.08);
   border: 1px solid rgba(224, 107, 107, 0.4);
   color: #f2b8b8;
@@ -1624,6 +1627,25 @@ footer {
   padding: 1rem 1.2rem;
   font-size: 0.95rem;
   line-height: 1.5;
+}
+
+.player-error svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.player-error.warn {
+  background: rgba(200, 170, 110, 0.1);
+  border-color: rgba(200, 170, 110, 0.5);
+  color: #e8d9b5;
+}
+
+.player-error.notfound {
+  background: rgba(11, 198, 227, 0.08);
+  border-color: rgba(11, 198, 227, 0.4);
+  color: #bceefb;
 }
 
 @media (max-width: 640px) {

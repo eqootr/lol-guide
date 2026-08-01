@@ -81,9 +81,11 @@
     goBtn.textContent = busy ? "Searching..." : "Search";
   }
 
-  function showError(msg) {
-    errorBox.textContent = msg;
+  function showError(msg, kind) {
+    document.getElementById("playerErrorText").textContent = msg;
     errorBox.classList.remove("hidden");
+    errorBox.classList.toggle("warn", kind === "api_key" || kind === "rate_limit");
+    errorBox.classList.toggle("notfound", kind === "not_found");
     loading.classList.add("hidden");
     results.classList.add("hidden");
   }
@@ -105,13 +107,13 @@
     try {
       const res = await fetch(`/api/player?name=${encodeURIComponent(parsed.name)}&tag=${encodeURIComponent(parsed.tag)}`);
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Could not load player stats.");
+      if (!res.ok) throw { message: data.error || "Could not load player stats.", kind: data.kind };
       render(data);
       results.classList.remove("hidden");
       loading.classList.add("hidden");
       results.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
-      showError(err.message);
+      showError(err.message || "Could not load player stats.", err.kind);
     } finally {
       setBusy(false);
     }
