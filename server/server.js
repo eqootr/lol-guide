@@ -447,6 +447,7 @@ app.get("/api/debug/summoner", async (req, res) => {
     league: league.data,
     spectatorStatus: spectator.status,
     spectator: spectator.data,
+    matchKeys,
     participantSummonerId,
   });
 });
