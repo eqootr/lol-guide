@@ -79,6 +79,17 @@ body[data-bg="gold"] {
   --bg-bottom: #120c05;
 }
 
+body[data-bg="champion"] {
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(4, 10, 20, 0.74) 0%, rgba(4, 10, 20, 0.9) 100%),
+    var(--champ-bg, none);
+  background-size: 28px 28px, auto, cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
 ::selection {
   background: rgba(11, 198, 227, 0.35);
   color: #fff;
@@ -1777,6 +1788,66 @@ footer {
 .bg-swatch.active {
   border-color: var(--gold);
   box-shadow: 0 0 0 4px rgba(200, 170, 110, 0.2), 0 0 18px rgba(200, 170, 110, 0.3);
+}
+
+.search-wrap-sm {
+  max-width: 320px;
+  margin: 0 0 0.8rem;
+}
+
+.champ-bg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 0.5rem;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(15, 28, 51, 0.5);
+}
+
+.champ-bg-item {
+  position: relative;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.15s ease;
+}
+
+.champ-bg-item:hover {
+  transform: translateY(-2px);
+}
+
+.champ-bg-item img {
+  width: 100%;
+  display: block;
+  border: 2px solid #2a3d5c;
+  border-radius: 10px;
+  background: #0d1b30;
+}
+
+.champ-bg-item .cb-name {
+  display: block;
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-top: 0.15rem;
+}
+
+.champ-bg-item.active img {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(200, 170, 110, 0.45);
+}
+
+.champ-bg-item.active .cb-name {
+  color: var(--gold-2);
 }
 
 /* ---------- Responsive / motion ---------- */

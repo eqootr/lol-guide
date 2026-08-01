@@ -11,6 +11,8 @@
   const saveRiotIdBtn = document.getElementById("saveRiotId");
   const riotIdHint = document.getElementById("riotIdHint");
   const bgPicker = document.getElementById("bgPicker");
+  const champSearch = document.getElementById("champBgSearch");
+  const champGrid = document.getElementById("champBgGrid");
   const statsLoading = document.getElementById("myStatsLoading");
   const statsEl = document.getElementById("myStats");
 
@@ -23,7 +25,8 @@
   ];
 
   let currentUser = null;
-  let currentProfile = { name: "", tag: "", background: "void" };
+  let currentProfile = { name: "", tag: "", background: "void", champion: "" };
+  let champSearchTerm = "";
 
   function esc(s) {
     return String(s ?? "").replace(/[&<>"']/g, (c) => ({
@@ -62,10 +65,6 @@
     const tag = value.slice(hash + 1).trim();
     if (!name || !tag) return null;
     return { name, tag };
-  }
-
-  function applyBackground(bg) {
-    document.body.dataset.bg = bg || "void";
   }
 
   function renderUserHeader(user) {
@@ -175,21 +174,65 @@
       const res = await fetch("/api/profile", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ name: currentProfile.name, tag: currentProfile.tag, background: bg }),
+        body: JSON.stringify({ name: currentProfile.name, tag: currentProfile.tag, background: bg, champion: "" }),
       });
       if (!res.ok) throw new Error("Could not save background.");
       currentProfile.background = bg;
+      currentProfile.champion = "";
       bgPicker.querySelectorAll(".bg-swatch").forEach((b) => b.classList.toggle("active", b === btn));
-      applyBackground(bg);
+      renderChampGrid();
+      LONBg.apply(currentProfile);
       toast("Background saved");
     } catch (err) {
       toast(err.message, true);
     }
   }
 
+  async function saveChampion(championId, btn) {
+    if (!currentUser) return;
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await fetch("/api/profile", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ name: currentProfile.name, tag: currentProfile.tag, background: "champion", champion: championId }),
+      });
+      if (!res.ok) throw new Error("Could not save background.");
+      currentProfile.background = "champion";
+      currentProfile.champion = championId;
+      bgPicker.querySelectorAll(".bg-swatch").forEach((b) => b.classList.remove("active"));
+      renderChampGrid();
+      LONBg.apply(currentProfile);
+      toast("Champion background saved");
+    } catch (err) {
+      toast(err.message, true);
+    }
+  }
+
+  function renderChampGrid() {
+    const term = champSearchTerm.toLowerCase();
+    const list = CHAMPIONS.filter((c) => !term || c.name.toLowerCase().includes(term)).slice(0, 120);
+    champGrid.innerHTML = list
+      .map(
+        (c) => `
+      <button class="champ-bg-item ${currentProfile.champion === c.id && currentProfile.background === "champion" ? "active" : ""}" data-id="${esc(c.id)}">
+        <img src="icons/${encodeURIComponent(c.id)}.png" alt="${esc(c.name)}" loading="lazy">
+        <span class="cb-name">${esc(c.name)}</span>
+      </button>`
+      )
+      .join("");
+    champGrid.querySelectorAll(".champ-bg-item").forEach((btn) => {
+      btn.addEventListener("click", () => saveChampion(btn.dataset.id, btn));
+    });
+  }
+
   saveRiotIdBtn.addEventListener("click", saveRiotId);
   riotIdInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") saveRiotId();
+  });
+  champSearch.addEventListener("input", () => {
+    champSearchTerm = champSearch.value.trim();
+    renderChampGrid();
   });
 
   document.getElementById("profileSignIn").addEventListener("click", () => {
@@ -213,8 +256,9 @@
         const data = await fetchProfile();
         currentProfile = data.profile;
         fillRiotInput(data.profile, data.linked);
-        applyBackground(data.profile.background);
         renderBgPicker(data.profile.background);
+        renderChampGrid();
+        LONBg.apply(data.profile);
         loadMyStats();
       } catch (err) {
         toast(err.message, true);

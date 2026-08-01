@@ -300,8 +300,9 @@
       });
       if (!res.ok) return;
       const data = await res.json();
-      const bg = data.profile?.background;
-      if (bg) document.body.dataset.bg = bg;
+      if (data.profile && typeof window.LONBg !== "undefined") {
+        LONBg.apply(data.profile);
+      }
     } catch {
       /* ignore */
     }

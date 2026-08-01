@@ -441,6 +441,7 @@ app.get("/api/profile", async (req, res) => {
       name: typeof prof.name === "string" ? prof.name : "",
       tag: typeof prof.tag === "string" ? prof.tag : "",
       background: BG_THEMES.includes(prof.background) ? prof.background : "void",
+      champion: typeof prof.champion === "string" ? prof.champion : "",
     },
     linked: data.riot && data.riot.gameName ? data.riot : null,
   });
@@ -457,14 +458,15 @@ app.post("/api/profile", async (req, res) => {
   const name = String(body.name ?? "").trim().slice(0, 32);
   const tag = String(body.tag ?? "").trim().toUpperCase().slice(0, 8);
   const background = BG_THEMES.includes(body.background) ? body.background : "void";
+  const champion = typeof body.champion === "string" ? body.champion.trim().slice(0, 32) : "";
 
   await admin
     .firestore()
     .collection("users")
     .doc(decoded.uid)
-    .set({ profile: { name, tag, background } }, { merge: true });
+    .set({ profile: { name, tag, background, champion } }, { merge: true });
 
-  res.json({ ok: true, profile: { name, tag, background } });
+  res.json({ ok: true, profile: { name, tag, background, champion } });
 });
 
 const STATIC_OK = new Set([
@@ -478,6 +480,7 @@ const STATIC_OK = new Set([
   "/player.js",
   "/stats-view.js",
   "/profile.js",
+  "/bg.js",
   "/profile.html",
   "/firebase-config.js",
 ]);
