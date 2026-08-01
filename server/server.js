@@ -428,7 +428,14 @@ app.get("/api/debug/summoner", async (req, res) => {
   if (!acctRes.data) return res.json({ status: acctRes.status, data: null });
   const puuid = acctRes.data.puuid;
   const s = await riotFetch(`https://${RIOT_PLATFORM}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`);
-  return res.json({ status: s.status, summoner: s.data, keys: s.data ? Object.keys(s.data) : [] });
+  const league = await riotFetch(`https://${RIOT_PLATFORM}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`);
+  const spectator = await riotFetch(`https://${RIOT_PLATFORM}.api.riotgames.com/lol/spectator/v4/active-games/by-puuid/${puuid}`);
+  return res.json({
+    summoner: s.data,
+    leagueStatus: league.status,
+    league: league.data,
+    spectatorStatus: spectator.status,
+  });
 });
 
 app.get("/api/meta", async (_req, res) => {
