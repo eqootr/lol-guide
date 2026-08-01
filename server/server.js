@@ -425,6 +425,24 @@ app.get("/api/player", async (req, res) => {
   }
 });
 
+app.get("/api/debug/league", async (req, res) => {
+  const name = String(req.query.name || "").trim();
+  const tag = String(req.query.tag || "").trim();
+  const acct = await riotFetch(
+    `https://${RIOT_REGION}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`
+  );
+  if (!acct.data) return res.json({ status: acct.status, data: null });
+  const league = await riotFetch(
+    `https://${RIOT_PLATFORM}.api.riotgames.com/lol/league/v4/entries/by-puuid/${acct.data.puuid}`
+  );
+  return res.json({
+    status: league.status,
+    isArray: Array.isArray(league.data),
+    count: Array.isArray(league.data) ? league.data.length : "n/a",
+    league: league.data,
+  });
+});
+
 app.get("/api/meta", async (_req, res) => {
   if (!fbConfigured) {
     return res.status(503).json({
