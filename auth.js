@@ -54,6 +54,10 @@
     t._timer = setTimeout(() => t.classList.remove("show"), 3500);
   }
 
+  function reloadSoon() {
+    setTimeout(() => window.location.reload(), 700);
+  }
+
   function setBusy(btn, busy) {
     if (!btn) return;
     btn.disabled = busy;
@@ -228,6 +232,7 @@
       await fb.auth().signInWithPopup(provider);
       closeModal();
       toast("Signed in with Google");
+      reloadSoon();
     } catch (err) {
       if (err.code !== "auth/popup-closed-by-user") showError(err.message);
     } finally {
@@ -251,6 +256,7 @@
         toast("Welcome back");
       }
       closeModal();
+      reloadSoon();
     } catch (err) {
       showError(err.message);
     } finally {
@@ -279,6 +285,7 @@
       /* ignore */
     }
     toast("Signed out");
+    reloadSoon();
   });
 
   if (fb) {
@@ -307,6 +314,7 @@
         try {
           await fb.auth().signInWithCustomToken(riotToken);
           toast("Signed in with League of Legends");
+          reloadSoon();
         } catch (err) {
           toast("LoL sign-in failed: " + err.message, true);
         }
