@@ -38,32 +38,7 @@
       <span id="playerErrorText"></span>
     </div>
 
-    <div id="playerResults" class="player-results hidden">
-      <div class="player-hero">
-        <div class="player-icon"><img id="playerIcon" alt=""></div>
-        <div class="player-hero-meta">
-          <h2 id="playerName"></h2>
-          <div class="player-level">Level <b id="playerLevel">-</b></div>
-        </div>
-      </div>
-
-      <div class="player-stats" id="playerStats">
-        <div class="stat-card"><span class="stat-label">Last 30</span><b id="statMatches">-</b></div>
-        <div class="stat-card"><span class="stat-label">Wins</span><b class="win" id="statWins">-</b></div>
-        <div class="stat-card"><span class="stat-label">Losses</span><b class="loss" id="statLosses">-</b></div>
-        <div class="stat-card"><span class="stat-label">Win Rate</span><b id="statWinRate">-</b></div>
-        <div class="stat-card"><span class="stat-label">KDA</span><b id="statKda">-</b></div>
-        <div class="stat-card"><span class="stat-label">Kills</span><b id="statKills">-</b></div>
-        <div class="stat-card"><span class="stat-label">Deaths</span><b id="statDeaths">-</b></div>
-        <div class="stat-card"><span class="stat-label">Assists</span><b id="statAssists">-</b></div>
-      </div>
-
-      <h3 class="section-title">Most Played Champions <span class="meta">last 30 matches</span></h3>
-      <div id="topChamps" class="top-champs"></div>
-
-      <h3 class="section-title">Recent Matches</h3>
-      <div id="recentMatches" class="recent-matches"></div>
-    </div>
+    <div id="playerResults" class="player-results hidden"></div>
   </main>
 
   <footer>
@@ -71,6 +46,7 @@
   </footer>
 
   <script src="data.js"></script>
+  <script src="stats-view.js"></script>
   <script src="player.js"></script>
 </body>
 </html>

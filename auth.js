@@ -219,6 +219,10 @@
     openModal("login");
   });
 
+  document.querySelector(".user-menu-head").addEventListener("click", () => {
+    window.location.href = "profile.html";
+  });
+
   $("authClose").addEventListener("click", closeModal);
   document.querySelector(".modal-backdrop").addEventListener("click", closeModal);
 
@@ -288,6 +292,21 @@
     reloadSoon();
   });
 
+  async function applyUserBackground(user) {
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch("/api/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const bg = data.profile?.background;
+      if (bg) document.body.dataset.bg = bg;
+    } catch {
+      /* ignore */
+    }
+  }
+
   if (fb) {
     fb.auth().onAuthStateChanged(async (user) => {
       currentUser = user;
@@ -300,6 +319,7 @@
       riotAccount = account;
       await applyRiotDisplayName(user, account);
       renderAuth();
+      applyUserBackground(user);
     });
   }
 

@@ -422,6 +422,51 @@ app.post("/api/riot/unlink", async (req, res) => {
   res.json({ ok: true });
 });
 
+// ----- User profile settings (Riot ID + background theme) -----
+
+const BG_THEMES = ["void", "crimson", "emerald", "aurora", "gold"];
+
+app.get("/api/profile", async (req, res) => {
+  if (!fbConfigured) {
+    return res.status(503).json({ error: "Profiles need Firebase to be configured on the server." });
+  }
+  const decoded = await verifyTokenOrSend(res, bearer(req));
+  if (!decoded) return;
+
+  const doc = await admin.firestore().collection("users").doc(decoded.uid).get();
+  const data = doc.exists ? doc.data() : {};
+  const prof = data.profile || {};
+  res.json({
+    profile: {
+      name: typeof prof.name === "string" ? prof.name : "",
+      tag: typeof prof.tag === "string" ? prof.tag : "",
+      background: BG_THEMES.includes(prof.background) ? prof.background : "void",
+    },
+    linked: data.riot && data.riot.gameName ? data.riot : null,
+  });
+});
+
+app.post("/api/profile", async (req, res) => {
+  if (!fbConfigured) {
+    return res.status(503).json({ error: "Profiles need Firebase to be configured on the server." });
+  }
+  const decoded = await verifyTokenOrSend(res, bearer(req));
+  if (!decoded) return;
+
+  const body = req.body || {};
+  const name = String(body.name ?? "").trim().slice(0, 32);
+  const tag = String(body.tag ?? "").trim().toUpperCase().slice(0, 8);
+  const background = BG_THEMES.includes(body.background) ? body.background : "void";
+
+  await admin
+    .firestore()
+    .collection("users")
+    .doc(decoded.uid)
+    .set({ profile: { name, tag, background } }, { merge: true });
+
+  res.json({ ok: true, profile: { name, tag, background } });
+});
+
 const STATIC_OK = new Set([
   "/",
   "/index.html",
@@ -431,6 +476,9 @@ const STATIC_OK = new Set([
   "/data.js",
   "/auth.js",
   "/player.js",
+  "/stats-view.js",
+  "/profile.js",
+  "/profile.html",
   "/firebase-config.js",
 ]);
 

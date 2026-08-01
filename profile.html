@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - League Of Noobs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-link">Champions</a>
+      <a href="player.html" class="nav-link">Player Stats</a>
+      <a href="profile.html" class="nav-link active">My Profile</a>
+    </nav>
+    <div id="authArea" class="auth-area">
+      <button id="signInBtn" class="btn btn-signin">Sign in</button>
+      <div id="userMenu" class="user-menu hidden">
+        <div class="user-menu-head">
+          <span id="userAvatar" class="user-avatar"></span>
+          <div class="user-meta">
+            <span id="userName" class="user-name"></span>
+            <button id="signOutBtn" class="link-btn">Sign out</button>
+          </div>
+        </div>
+        <div id="riotLink" class="riot-link"></div>
+      </div>
+    </div>
+    <span class="site-badge">MY PROFILE</span>
+    <h1>League <span>Of Noobs</span></h1>
+    <p>Connect your League of Legends account, see your own stats and pick a background.</p>
+  </header>
+
+  <main>
+    <div id="authPrompt" class="profile-auth hidden">
+      <p>Sign in to create and view your profile.</p>
+      <button class="btn btn-primary" id="profileSignIn" style="width:auto;">Sign in</button>
+    </div>
+
+    <div id="profileWrap" class="profile-wrap hidden">
+      <div class="profile-card">
+        <div class="player-hero">
+          <div class="player-icon" id="profileAvatar"></div>
+          <div class="player-hero-meta">
+            <h2 id="profileDisplayName"></h2>
+            <div class="player-level" id="profileEmail"></div>
+          </div>
+        </div>
+
+        <div class="profile-body">
+          <h3 class="section-title">Your League of Legends account</h3>
+          <div class="search-wrap search-wrap-lg riot-id-form">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <input type="text" id="riotIdInput" placeholder="Name#TAG  e.g. Yike#EUW" autocomplete="off">
+            <button id="saveRiotId" class="btn btn-go">Save</button>
+          </div>
+          <p class="search-hint" id="riotIdHint">Enter your Riot ID (Name#TAG) to see your own stats here.</p>
+
+          <h3 class="section-title">Page background</h3>
+          <div class="bg-picker" id="bgPicker"></div>
+        </div>
+      </div>
+
+      <div id="myStatsLoading" class="loading hidden">
+        <div class="spinner"></div>
+        <p>Loading your last 30 matches...</p>
+      </div>
+
+      <div id="myStats" class="player-results hidden"></div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Fan-made beginner guide. League of Legends and all champion names are trademarks of Riot Games, Inc.</p>
+  </footer>
+
+  <div id="authModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-box">
+      <button id="authClose" class="modal-close">&times;</button>
+      <h2 id="authTitle">Sign in</h2>
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-mode="login">Sign In</button>
+        <button class="auth-tab" data-mode="signup">Sign Up</button>
+      </div>
+      <form id="emailForm">
+        <input type="email" id="authEmail" placeholder="Email" autocomplete="email" required>
+        <input type="password" id="authPassword" placeholder="Password" autocomplete="current-password" required>
+        <button type="submit" class="btn btn-primary" id="emailSubmit">Sign In</button>
+      </form>
+      <div class="auth-divider"><span>or</span></div>
+      <button class="btn btn-google" id="googleBtn"><span class="g-logo">G</span> Continue with Google</button>
+      <button class="btn btn-riot" id="riotBtn"><span class="riot-logo">LoL</span> Sign in with League of Legends</button>
+      <p class="auth-error" id="authError"></p>
+      <p class="auth-note" id="authNote"></p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="data.js"></script>
+  <script src="stats-view.js"></script>
+  <script src="auth.js"></script>
+  <script src="profile.js"></script>
+</body>
+</html>
