@@ -191,7 +191,6 @@ async function buildRanked(puuid) {
       winRate: total ? round1((e.wins / total) * 100) : 0,
       hotStreak: !!e.hotStreak,
     };
-    const out = { solo: null, flex: null };
     if (e.queueType === "RANKED_SOLO_5x5" || e.queueType === "JADE_RANKED_SOLO_5x5") {
       if (!out.solo || e.queueType === "RANKED_SOLO_5x5") out.solo = obj;
     } else if (e.queueType === "RANKED_FLEX_SR" || e.queueType === "RANKED_PREMADE_5x5") {
