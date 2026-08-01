@@ -1,0 +1,35 @@
+# Render blueprint for League Of Noobs.
+# How to use:
+#   1. Push this file to GitHub.
+#   2. On render.com: "New -> Blueprint" and select the repo.
+#   3. Render reads this file, creates the web service and
+#      asks you to fill in the secret env vars (marked sync: false).
+#
+# The site name below becomes https://league-of-noobs.onrender.com
+# If that name is taken, pick another here or in the dashboard.
+
+services:
+  - type: web
+    name: league-of-noobs
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/config
+    plan: free
+    envVars:
+      - key: RIOT_REDIRECT_URI
+        value: https://league-of-noobs.onrender.com/api/riot/callback
+      - key: RIOT_REGION
+        value: europe
+      - key: RIOT_PLATFORM
+        value: euw1
+      # Fill these in the dashboard after the service is created.
+      - key: RIOT_CLIENT_ID
+        sync: false
+      - key: RIOT_CLIENT_SECRET
+        sync: false
+      - key: RIOT_API_KEY
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
