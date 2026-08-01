@@ -173,11 +173,11 @@ async function getChampionNames() {
   });
 }
 
-async function buildRanked(summonerId) {
+async function buildRanked(puuid) {
   const out = { solo: null, flex: null };
-  if (!summonerId) return out;
+  if (!puuid) return out;
   const res = await riotFetch(
-    `https://${RIOT_PLATFORM}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`
+    `https://${RIOT_PLATFORM}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`
   );
   const entries = Array.isArray(res.data) ? res.data : [];
   for (const e of entries) {
@@ -209,21 +209,26 @@ async function buildMastery(puuid, names) {
   }));
 }
 
-async function buildLive(summonerId, names) {
-  if (!summonerId) return { inGame: false };
+async function buildLive(puuid, names) {
+  if (!puuid) return { inGame: false };
   const res = await riotFetch(
-    `https://${RIOT_PLATFORM}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${summonerId}`
+    `https://${RIOT_PLATFORM}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`
   );
   const g = res.data;
   if (!g) return { inGame: false };
+  const participants = (g.participants || []).map((p) => ({
+    championName: names.get(String(p.championId)) || `Champion ${p.championId}`,
+    teamId: p.teamId,
+  }));
+  const me = (g.participants || []).find((p) => p.puuid === puuid);
   return {
     inGame: true,
     queueId: g.gameQueueConfigId,
     gameLength: g.gameLength,
-    participants: (g.participants || []).map((p) => ({
-      summonerName: p.summonerName,
-      championName: names.get(String(p.championId)) || `Champion ${p.championId}`,
-    })),
+    championName: me
+      ? names.get(String(me.championId)) || `Champion ${me.championId}`
+      : "",
+    participants,
   };
 }
 
@@ -335,9 +340,8 @@ async function buildPlayerStats(name, tag) {
 
   const played = recent.length;
 
-  const summonerId = summoner?.id || "";
   const championNames = await getChampionNames();
-  const ranked = await buildRanked(summonerId);
+  const ranked = await buildRanked(puuid);
   const mastery = await buildMastery(puuid, championNames);
 
   await recordMeta(topChampions);
@@ -348,7 +352,6 @@ async function buildPlayerStats(name, tag) {
       gameName: acct.gameName,
       tagLine: acct.tagLine,
       puuid,
-      summonerId,
       platform: RIOT_PLATFORM,
       summonerLevel: summoner?.summonerLevel ?? null,
       profileIconId: summoner?.profileIconId ?? null,
@@ -409,47 +412,13 @@ app.get("/api/player", async (req, res) => {
 
   try {
     const data = await cached(`player:${name}#${tag}`, 5 * 60 * 1000, () => buildPlayerStats(name, tag));
-    data.live = await buildLive(data.account.summonerId, await getChampionNames());
+    data.live = await buildLive(data.account.puuid, await getChampionNames());
     res.json(data);
   } catch (err) {
     const kind = err.kind || "generic";
     const status = kind === "not_found" ? 404 : 503;
     res.status(status).json({ error: err.message || "Could not load player stats.", kind });
   }
-});
-
-app.get("/api/debug/summoner", async (req, res) => {
-  if (!RIOT_API_KEY) return res.json({ error: "no key" });
-  const name = String(req.query.name || "").trim();
-  const tag = String(req.query.tag || "").trim();
-  const acctRes = await riotFetch(
-    `https://${RIOT_REGION}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`
-  );
-  if (!acctRes.data) return res.json({ status: acctRes.status, data: null });
-  const puuid = acctRes.data.puuid;
-  const s = await riotFetch(`https://${RIOT_PLATFORM}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`);
-  const league = await riotFetch(`https://${RIOT_PLATFORM}.api.riotgames.com/lol/league/v4/entries/by-puuid/${puuid}`);
-  const spectator = await riotFetch(`https://${RIOT_PLATFORM}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`);
-  const ids = await riotFetch(`https://${RIOT_REGION}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=1`);
-  let matchKeys = null;
-  let participantSummonerId = null;
-  if (Array.isArray(ids.data) && ids.data.length) {
-    const m = await riotFetch(`https://${RIOT_REGION}.api.riotgames.com/lol/match/v5/matches/${ids.data[0]}`);
-    if (m.data && m.data.info) {
-      const p = (m.data.info.participants || []).find((x) => x.puuid === puuid);
-      matchKeys = p ? Object.keys(p) : [];
-      participantSummonerId = p ? p.summonerId : null;
-    }
-  }
-  return res.json({
-    summoner: s.data,
-    leagueStatus: league.status,
-    league: league.data,
-    spectatorStatus: spectator.status,
-    spectator: spectator.data,
-    matchKeys,
-    participantSummonerId,
-  });
 });
 
 app.get("/api/meta", async (_req, res) => {

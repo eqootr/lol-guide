@@ -67,6 +67,28 @@
     return Number(n).toLocaleString("en-US");
   }
 
+  function opggRegion(platform) {
+    const map = {
+      euw1: "euw",
+      eun1: "eune",
+      na1: "na",
+      br1: "br",
+      la1: "lan",
+      la2: "las",
+      kr: "kr",
+      jp1: "jp",
+      oce: "oce",
+      tr1: "tr",
+      ru: "ru",
+      ph2: "ph",
+      sg2: "sg",
+      th2: "th",
+      vn2: "vn",
+      tw2: "tw",
+    };
+    return map[String(platform).toLowerCase()] || platform || "na";
+  }
+
   function tierClass(tier) {
     return String(tier || "").toLowerCase();
   }
@@ -97,12 +119,13 @@
       : `<span class="fallback-letter">${esc((acct.gameName || "?").charAt(0))}</span>`;
 
     const live = data.live && data.live.inGame;
-    const spectateUrl = `https://${encodeURIComponent(acct.platform)}.spectator.pvp.net/observer-mode/spectate/${encodeURIComponent(acct.summonerId)}`;
+    const liveText = live
+      ? `In a game now${data.live.championName ? ` · ${esc(data.live.championName)}` : ""} · ${esc(queueName(data.live.queueId))}`
+      : "Not in a live game";
+    const spectateUrl = `https://www.op.gg/summoners/${opggRegion(acct.platform)}/${encodeURIComponent(acct.gameName)}-${encodeURIComponent(acct.tagLine)}`;
     const liveHtml = live
-      ? `<div class="live-chip on" title="${esc(
-          (data.live.participants || []).map((p) => p.summonerName).join(", ")
-        )}"><span class="live-dot"></span>In a game now · ${esc(queueName(data.live.queueId))}<a class="btn-spectate" href="${spectateUrl}" target="_blank" rel="noopener">Spectate</a></div>`
-      : `<div class="live-chip off"><span class="live-dot"></span>Not in a live game</div>`;
+      ? `<div class="live-chip on" title="${esc((data.live.participants || []).map((p) => p.championName).join(", "))}"><span class="live-dot"></span>${liveText}<a class="btn-spectate" href="${spectateUrl}" target="_blank" rel="noopener">Spectate</a></div>`
+      : `<div class="live-chip off"><span class="live-dot"></span>${liveText}</div>`;
 
     const rankedHtml =
       data.ranked && (data.ranked.solo || data.ranked.flex)
