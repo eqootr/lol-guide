@@ -256,6 +256,7 @@ const META_GAMES_PER_PLAYER = 30;
 const META_REFRESH_MS = 12 * 60 * 60 * 1000;
 const META_QUEUES = [400, 420, 430, 440];
 const META_LANES = ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"];
+const META_SIGNATURE = `${META_PLAYERS.length}:${META_GAMES_PER_PLAYER}`;
 
 let samplingMeta = false;
 
@@ -276,6 +277,7 @@ async function sampleWorldwideMeta() {
     const prev = prevDoc.exists ? prevDoc.data() : {};
     if (
       prev.generatedAt &&
+      prev.signature === META_SIGNATURE &&
       Date.now() - new Date(prev.generatedAt).getTime() < META_REFRESH_MS
     ) {
       return;
@@ -360,6 +362,7 @@ async function sampleWorldwideMeta() {
     }
     const info = {
       generatedAt: new Date().toISOString(),
+      signature: META_SIGNATURE,
       championGames: champions.reduce((s, c) => s + c.games, 0),
       players: resolved.length,
       regions: [...regions].sort(),
